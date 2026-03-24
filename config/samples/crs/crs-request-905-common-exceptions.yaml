@@ -1,0 +1,47 @@
+apiVersion: seclang.kubewaf.io/v1beta1
+kind: SecRule
+metadata:
+  labels:
+    app.kubernetes.io/part-of: coreruleset
+    coreruleset/file: REQUEST-905-COMMON-EXCEPTIONS.conf
+    coreruleset/version: 4.3.0
+  name: crs-request-905-common-exceptions
+spec:
+  secLangRules:
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: chain
+        value: ""
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - operator:
+        name: strEq
+        value: GET /
+      variables:
+      - name: REQUEST_LINE
+    metadata:
+      id: 905100
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: chain
+        value: ""
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - operator:
+        name: ipMatch
+        value: 127.0.0.1,::1
+      variables:
+      - name: REMOTE_ADDR
+    metadata:
+      comment: |+
+        Exception for Apache internal dummy connection
+
+      id: 905110
+      phase: "1"

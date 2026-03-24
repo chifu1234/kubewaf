@@ -1,0 +1,338 @@
+apiVersion: seclang.kubewaf.io/v1beta1
+kind: SecRule
+metadata:
+  labels:
+    app.kubernetes.io/part-of: coreruleset
+    coreruleset/file: RESPONSE-950-DATA-LEAKAGES.conf
+    coreruleset/version: 4.3.0
+  name: crs-response-950-data-leakages
+spec:
+  secLangRules:
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-959-BLOCKING-EVALUATION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - crs_skip_response_analysis
+        name: TX
+      operator:
+        name: eq
+        value: "1"
+    metadata:
+      id: 950021
+      phase: "3"
+      tags:
+      - OWASP_CRS/DATA-LEAKAGES
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-950-DATA-LEAKAGES
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - Content-Encoding
+        name: RESPONSE_HEADERS
+      operator:
+        name: pm
+        value: gzip compress deflate br zstd
+    metadata:
+      comment: |
+        Skip all rules if RESPONSE_BODY is compressed.
+      id: 950010
+      phase: "4"
+      tags:
+      - OWASP_CRS/DATA-LEAKAGES
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-950-DATA-LEAKAGES
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "1"
+    metadata:
+      id: 950011
+      phase: "3"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-950-DATA-LEAKAGES
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "1"
+    metadata:
+      id: 950012
+      phase: "4"
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}'
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl1=+%{tx.error_anomaly_score}
+    conditions:
+    - operator:
+        name: rx
+        value: (?:<(?:TITLE>Index of.*?<H|title>Index of.*?<h)1>Index of|>\[To Parent
+          Directory\]</[Aa]><br>)
+      variables:
+      - name: RESPONSE_BODY
+    metadata:
+      id: 950130
+      message: Directory Listing
+      phase: "4"
+      severity: ERROR
+      tags:
+      - application-multi
+      - language-multi
+      - platform-multi
+      - attack-disclosure
+      - paranoia-level/1
+      - OWASP_CRS/DATA-LEAKAGES
+      - capec/1000/118/116/54/127
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}'
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl1=+%{tx.error_anomaly_score}
+    conditions:
+    - operator:
+        name: rx
+        value: ^#\!\s?/
+      variables:
+      - name: RESPONSE_BODY
+    metadata:
+      comment: |
+        -=[ CGI Source Code Leakage ]=-
+
+        A CGI script begins normally with #! and the interpreter,
+        for example:
+
+        #!/usr/bin/perl
+        #!/usr/bin/python
+        #!/usr/bin/ruby
+
+        If the CGI script processors or MIME type handlers are misconfigured,
+        the script's source code could be erroneously returned to the client.
+      id: 950140
+      message: CGI source code leakage
+      phase: "4"
+      severity: ERROR
+      tags:
+      - application-multi
+      - language-multi
+      - platform-multi
+      - attack-disclosure
+      - paranoia-level/1
+      - OWASP_CRS/DATA-LEAKAGES
+      - capec/1000/118/116
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}'
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl1=+%{tx.error_anomaly_score}
+    conditions:
+    - operator:
+        name: pmFromFile
+        value: asp-dotnet-errors.data
+      variables:
+      - name: RESPONSE_BODY
+    metadata:
+      comment: |+
+        -=[ ASP.NET Errors ]=-
+
+      id: 950150
+      message: ASP.NET exception leakage
+      phase: "4"
+      severity: ERROR
+      tags:
+      - application-multi
+      - language-aspnet
+      - platform-multi
+      - attack-disclosure
+      - paranoia-level/1
+      - OWASP_CRS/DATA-LEAKAGES
+      - capec/1000/118/116/54/127
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-950-DATA-LEAKAGES
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "2"
+    metadata:
+      id: 950013
+      phase: "3"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-950-DATA-LEAKAGES
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "2"
+    metadata:
+      id: 950014
+      phase: "4"
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}'
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl2=+%{tx.error_anomaly_score}
+    conditions:
+    - operator:
+        name: rx
+        value: ^5\d{2}$
+      variables:
+      - name: RESPONSE_STATUS
+    metadata:
+      id: 950100
+      message: The Application Returned a 500-Level Status Code
+      phase: "3"
+      severity: ERROR
+      tags:
+      - application-multi
+      - language-multi
+      - platform-multi
+      - attack-disclosure
+      - paranoia-level/2
+      - OWASP_CRS/DATA-LEAKAGES
+      - capec/1000/152
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-950-DATA-LEAKAGES
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "3"
+    metadata:
+      id: 950015
+      phase: "3"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-950-DATA-LEAKAGES
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "3"
+    metadata:
+      id: 950016
+      phase: "4"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-950-DATA-LEAKAGES
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "4"
+    metadata:
+      comment: |+
+        -= Paranoia Level 3 =- (apply only when tx.detection_paranoia_level is sufficiently high: 3 or higher)
+
+      id: 950017
+      phase: "3"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-950-DATA-LEAKAGES
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "4"
+    metadata:
+      id: 950018
+      phase: "4"
+    secMarker: END-RESPONSE-950-DATA-LEAKAGES

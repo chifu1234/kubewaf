@@ -1,0 +1,712 @@
+apiVersion: seclang.kubewaf.io/v1beta1
+kind: SecRule
+metadata:
+  labels:
+    app.kubernetes.io/part-of: coreruleset
+    coreruleset/file: REQUEST-901-INITIALIZATION.conf
+    coreruleset/version: 4.3.0
+  name: crs-request-901-initialization
+spec:
+  secLangRules:
+  - actions:
+      data:
+      - dataActionType: status
+        value: "500"
+      disruptive:
+        disruptiveActionType: deny
+      non-disruptive:
+      - nonDisruptiveActionType: log
+      - nonDisruptiveActionType: auditlog
+    conditions:
+    - collections:
+      - arguments:
+        - crs_setup_version
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      comment: |+
+        -=[ Default setup values ]=-
+
+        The CRS checks the tx.crs_setup_version variable to ensure that the setup
+        file is included at the correct time. This detects situations where
+        necessary settings are not defined, for instance if the file
+        inclusion order is incorrect, or if the user has forgotten to
+        include the crs-setup.conf file.
+
+        If you are upgrading from an earlier version of the CRS and you are
+        getting this error, please make a new copy of the setup template
+        crs-setup.conf.example to crs-setup.conf, and re-apply your policy
+        changes. There have been many changes in settings syntax from CRS2
+        to CRS3, so an old setup file may cause unwanted behavior.
+
+        If you are not planning to use the crs-setup.conf template, you must
+        manually set the tx.crs_setup_version variable before including
+        the CRS rules/* files.
+
+        The variable is a numerical representation of the CRS version number.
+        E.g., v3.0.0 is represented as 300.
+
+      id: 901001
+      message: CRS is deployed without configuration! Please copy the crs-setup.conf.example
+        template to crs-setup.conf, and include the crs-setup.conf file in your webserver
+        configuration before including the CRS rules. See the INSTALL file in the
+        CRS directory for detailed instructions
+      phase: "1"
+      severity: CRITICAL
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.inbound_anomaly_score_threshold=5
+    conditions:
+    - collections:
+      - arguments:
+        - inbound_anomaly_score_threshold
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      id: 901100
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_threshold=4
+    conditions:
+    - collections:
+      - arguments:
+        - outbound_anomaly_score_threshold
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      comment: |
+        Default Outbound Anomaly Threshold Level (rule 900110 in crs-setup.conf)
+      id: 901110
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.reporting_level=4
+    conditions:
+    - collections:
+      - arguments:
+        - reporting_level
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      comment: |
+        Default Reporting Level (rule 900115 in crs-setup.conf)
+      id: 901111
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.early_blocking=0
+    conditions:
+    - collections:
+      - arguments:
+        - early_blocking
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      comment: |
+        Default Early Blocking (rule 900120 in crs-setup.conf)
+      id: 901115
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.blocking_paranoia_level=1
+    conditions:
+    - collections:
+      - arguments:
+        - blocking_paranoia_level
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      comment: |
+        Default Blocking Paranoia Level (rule 900000 in crs-setup.conf)
+      id: 901120
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.detection_paranoia_level=%{TX.blocking_paranoia_level}
+    conditions:
+    - collections:
+      - arguments:
+        - detection_paranoia_level
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      comment: |
+        Default Detection Paranoia Level (rule 900001 in crs-setup.conf)
+      id: 901125
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.sampling_percentage=100
+    conditions:
+    - collections:
+      - arguments:
+        - sampling_percentage
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      comment: |
+        Default Sampling Percentage (rule 900400 in crs-setup.conf)
+      id: 901130
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.critical_anomaly_score=5
+    conditions:
+    - collections:
+      - arguments:
+        - critical_anomaly_score
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      comment: |
+        Default Anomaly Scores (rule 900100 in crs-setup.conf)
+      id: 901140
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.error_anomaly_score=4
+    conditions:
+    - collections:
+      - arguments:
+        - error_anomaly_score
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      id: 901141
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.warning_anomaly_score=3
+    conditions:
+    - collections:
+      - arguments:
+        - warning_anomaly_score
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      id: 901142
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.notice_anomaly_score=2
+    conditions:
+    - collections:
+      - arguments:
+        - notice_anomaly_score
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      id: 901143
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.allowed_methods=GET HEAD POST OPTIONS
+    conditions:
+    - collections:
+      - arguments:
+        - allowed_methods
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      comment: |
+        Default HTTP policy: allowed_methods (rule 900200 in crs-setup.conf)
+      id: 901160
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.allowed_request_content_type=|application/x-www-form-urlencoded|
+          |multipart/form-data| |text/xml| |application/xml| |application/soap+xml|
+          |application/json| |application/reports+json| |application/csp-report|
+    conditions:
+    - collections:
+      - arguments:
+        - allowed_request_content_type
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      comment: |
+        Default HTTP policy: allowed_request_content_type (rule 900220 in crs-setup.conf)
+      id: 901162
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.allowed_request_content_type_charset=|utf-8| |iso-8859-1| |iso-8859-15|
+          |windows-1252|
+    conditions:
+    - collections:
+      - arguments:
+        - allowed_request_content_type_charset
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      comment: |
+        Default HTTP policy: allowed_request_content_type_charset (rule 900280 in crs-setup.conf)
+      id: 901168
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.allowed_http_versions=HTTP/1.0 HTTP/1.1 HTTP/2 HTTP/2.0 HTTP/3 HTTP/3.0
+    conditions:
+    - collections:
+      - arguments:
+        - allowed_http_versions
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      comment: |
+        Default HTTP policy: allowed_http_versions (rule 900230 in crs-setup.conf)
+      id: 901163
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.restricted_extensions=.ani/ .asa/ .asax/ .ascx/ .back/ .backup/
+          .bak/ .bck/ .bk/ .bkp/ .bat/ .cdx/ .cer/ .cfg/ .cmd/ .cnf/ .com/ .compositefont/
+          .config/ .conf/ .copy/ .crt/ .cs/ .csproj/ .csr/ .dat/ .db/ .dbf/ .dist/
+          .dll/ .dos/ .dpkg-dist/ .drv/ .gadget/ .hta/ .htr/ .htw/ .ida/ .idc/ .idq/
+          .inc/ .inf/ .ini/ .jse/ .key/ .licx/ .lnk/ .log/ .mdb/ .msc/ .ocx/ .old/
+          .pass/ .pdb/ .pfx/ .pif/ .pem/ .pol/ .prf/ .printer/ .pwd/ .rdb/ .rdp/ .reg/
+          .resources/ .resx/ .sav/ .save/ .scr/ .sct/ .sh/ .shs/ .sql/ .sqlite/ .sqlite3/
+          .swp/ .sys/ .temp/ .tlb/ .tmp/ .vb/ .vbe/ .vbs/ .vbproj/ .vsdisco/ .vxd/
+          .webinfo/ .ws/ .wsc/ .wsf/ .wsh/ .xsd/ .xsx/
+    conditions:
+    - collections:
+      - arguments:
+        - restricted_extensions
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      comment: |
+        Default HTTP policy: restricted_extensions (rule 900240 in crs-setup.conf)
+      id: 901164
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.restricted_headers_basic=/content-encoding/ /proxy/ /lock-token/
+          /content-range/ /if/ /x-http-method-override/ /x-http-method/ /x-method-override/
+          /x-middleware-subrequest/ /expect/
+    conditions:
+    - collections:
+      - arguments:
+        - restricted_headers_basic
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      comment: |
+        Default HTTP policy: restricted_headers_basic (rule 900250 in crs-setup.conf)
+      id: 901165
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.restricted_headers_extended=/accept-charset/
+    conditions:
+    - collections:
+      - arguments:
+        - restricted_headers_extended
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      comment: |
+        Default HTTP policy: restricted_headers_extended (rule 900255 in crs-setup.conf)
+      id: 901171
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.enforce_bodyproc_urlencoded=0
+    conditions:
+    - collections:
+      - arguments:
+        - enforce_bodyproc_urlencoded
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      comment: |
+        Default enforcing of body processor URLENCODED (rule 900010 in crs-setup.conf)
+      id: 901167
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.crs_validate_utf8_encoding=0
+    conditions:
+    - collections:
+      - arguments:
+        - crs_validate_utf8_encoding
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      comment: |
+        Default check for UTF8 encoding validation (rule 900950 in crs-setup.conf)
+      id: 901169
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.crs_skip_response_analysis=0
+    conditions:
+    - collections:
+      - arguments:
+        - crs_skip_response_analysis
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "0"
+    metadata:
+      comment: |
+        Default check for skipping response analysis (rule 900500 in crs-setup.conf)
+      id: 901170
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.blocking_inbound_anomaly_score=0
+      - nonDisruptiveActionType: setvar
+        value: TX.detection_inbound_anomaly_score=0
+      - nonDisruptiveActionType: setvar
+        value: TX.inbound_anomaly_score_pl1=0
+      - nonDisruptiveActionType: setvar
+        value: TX.inbound_anomaly_score_pl2=0
+      - nonDisruptiveActionType: setvar
+        value: TX.inbound_anomaly_score_pl3=0
+      - nonDisruptiveActionType: setvar
+        value: TX.inbound_anomaly_score_pl4=0
+      - nonDisruptiveActionType: setvar
+        value: TX.sql_injection_score=0
+      - nonDisruptiveActionType: setvar
+        value: TX.xss_score=0
+      - nonDisruptiveActionType: setvar
+        value: TX.rfi_score=0
+      - nonDisruptiveActionType: setvar
+        value: TX.lfi_score=0
+      - nonDisruptiveActionType: setvar
+        value: TX.rce_score=0
+      - nonDisruptiveActionType: setvar
+        value: TX.php_injection_score=0
+      - nonDisruptiveActionType: setvar
+        value: TX.http_violation_score=0
+      - nonDisruptiveActionType: setvar
+        value: TX.session_fixation_score=0
+      - nonDisruptiveActionType: setvar
+        value: TX.blocking_outbound_anomaly_score=0
+      - nonDisruptiveActionType: setvar
+        value: TX.detection_outbound_anomaly_score=0
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl1=0
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl2=0
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl3=0
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl4=0
+      - nonDisruptiveActionType: setvar
+        value: TX.anomaly_score=0
+    conditions:
+    - always-match: true
+      operator:
+        name: unknownOperator
+    metadata:
+      id: 901200
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: chain
+        value: ""
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.ua_hash=%{REQUEST_HEADERS.User-Agent}
+    conditions:
+    - collections:
+      - arguments:
+        - ENABLE_DEFAULT_COLLECTIONS
+        count: true
+        name: TX
+      operator:
+        name: eq
+        value: "1"
+    metadata:
+      id: 901320
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: noauditlog
+      - nonDisruptiveActionType: ctl
+        value: forceRequestBodyVariable=On
+    conditions:
+    - operator:
+        name: rx
+        negate: true
+        value: (?:URLENCODED|MULTIPART|XML|JSON)
+      variables:
+      - name: REQBODY_PROCESSOR
+    metadata:
+      id: 901340
+      message: Enabling body inspection
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: chain
+        value: ""
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: noauditlog
+    conditions:
+    - collections:
+      - arguments:
+        - enforce_bodyproc_urlencoded
+        name: TX
+      operator:
+        name: eq
+        value: "1"
+    metadata:
+      comment: |
+        Force body processor URLENCODED
+      id: 901350
+      message: Enabling forced body inspection for ASCII content
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-SAMPLING
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - sampling_percentage
+        name: TX
+      operator:
+        name: eq
+        value: "100"
+    metadata:
+      id: 901400
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.sampling_rnd100=%{TX.1}%{TX.2}
+    conditions:
+    - operator:
+        name: rx
+        value: ^[a-f]*([0-9])[a-f]*([0-9])
+      variables:
+      - name: UNIQUE_ID
+    metadata:
+      id: 901410
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: log
+      - nonDisruptiveActionType: noauditlog
+      - nonDisruptiveActionType: ctl
+        value: ruleRemoveByTag=OWASP_CRS
+    conditions:
+    - collections:
+      - arguments:
+        - sampling_rnd100
+        name: TX
+      operator:
+        name: lt
+        negate: true
+        value: '%{tx.sampling_percentage}'
+    metadata:
+      comment: |+
+        Sampling decision
+
+        If a request is allowed to pass without being checked by the CRS, there is no
+        entry in the audit log (for performance reasons), but an error log entry is
+        being written.  If you want to disable the error log entry, then issue the
+        following directive somewhere after the inclusion of the CRS
+        (E.g., RESPONSE-999-EXCEPTIONS.conf).
+
+        SecRuleUpdateActionById 901450 "nolog"
+
+      id: 901450
+      message: 'Sampling: Disable the rule engine based on sampling_percentage %{TX.sampling_percentage}
+        and random number %{TX.sampling_rnd100}'
+      phase: "1"
+    secMarker: END-SAMPLING
+  - actions:
+      data:
+      - dataActionType: status
+        value: "500"
+      disruptive:
+        disruptiveActionType: deny
+      non-disruptive:
+      - nonDisruptiveActionType: log
+    conditions:
+    - collections:
+      - arguments:
+        - detection_paranoia_level
+        name: TX
+      operator:
+        name: lt
+        value: '%{tx.blocking_paranoia_level}'
+    metadata:
+      id: 901500
+      message: Detection paranoia level configured is lower than the paranoia level
+        itself. This is illegal. Blocking request. Aborting
+      phase: "1"

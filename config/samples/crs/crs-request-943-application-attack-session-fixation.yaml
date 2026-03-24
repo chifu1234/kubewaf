@@ -1,0 +1,271 @@
+apiVersion: seclang.kubewaf.io/v1beta1
+kind: SecRule
+metadata:
+  labels:
+    app.kubernetes.io/part-of: coreruleset
+    coreruleset/file: REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION.conf
+    coreruleset/version: 4.3.0
+  name: crs-request-943-application-attack-session-fixation
+spec:
+  secLangRules:
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "1"
+    metadata:
+      id: 943011
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "1"
+    metadata:
+      id: 943012
+      phase: "2"
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}: %{MATCHED_VAR}'
+      - nonDisruptiveActionType: setvar
+        value: TX.session_fixation_score=+%{tx.critical_anomaly_score}
+      - nonDisruptiveActionType: setvar
+        value: TX.inbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+    conditions:
+    - collections:
+      - name: REQUEST_COOKIES
+      - name: REQUEST_COOKIES_NAMES
+      - name: ARGS_NAMES
+      - name: ARGS
+      - arguments:
+        - /*
+        name: XML
+      operator:
+        name: rx
+        value: (?i:\.cookie\b.*?;\W*?(?:expires|domain)\W*?=|\bhttp-equiv\W+set-cookie\b)
+    metadata:
+      id: 943100
+      message: 'Possible Session Fixation Attack: Setting Cookie Values in HTML'
+      phase: "2"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-multi
+      - attack-fixation
+      - paranoia-level/1
+      - OWASP_CRS/ATTACK-SESSION-FIXATION
+      - capec/1000/225/21/593/61
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      flow:
+      - flowActionType: chain
+        value: ""
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{TX.943110_MATCHED_VAR_NAME}:
+          %{MATCHED_VAR}'
+      - nonDisruptiveActionType: setvar
+        value: TX.943110_matched_var_name=%{matched_var_name}
+    conditions:
+    - collections:
+      - name: ARGS_NAMES
+      operator:
+        name: rx
+        value: ^(?:jsessionid|aspsessionid|asp\.net_sessionid|phpsession|phpsessid|weblogicsession|session_id|session-id|sessionid|cfid|cftoken|cfsid|jservsession|jwsession|_flask_session|_session_id|connect\.sid|laravel_session)$
+    metadata:
+      id: 943110
+      message: 'Possible Session Fixation Attack: SessionID Parameter Name with Off-Domain
+        Referer'
+      phase: "2"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-multi
+      - attack-fixation
+      - paranoia-level/1
+      - OWASP_CRS/ATTACK-SESSION-FIXATION
+      - capec/1000/225/21/593/61
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      flow:
+      - flowActionType: chain
+        value: ""
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{TX.943120_MATCHED_VAR_NAME}:
+          %{MATCHED_VAR}'
+      - nonDisruptiveActionType: setvar
+        value: TX.943120_matched_var_name=%{matched_var_name}
+    conditions:
+    - collections:
+      - name: ARGS_NAMES
+      operator:
+        name: rx
+        value: ^(?:jsessionid|aspsessionid|asp\.net_sessionid|phpsession|phpsessid|weblogicsession|session_id|session-id|sessionid|cfid|cftoken|cfsid|jservsession|jwsession|_flask_session|_session_id|connect\.sid|laravel_session)$
+    metadata:
+      id: 943120
+      message: 'Possible Session Fixation Attack: SessionID Parameter Name with No
+        Referer'
+      phase: "2"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-multi
+      - attack-fixation
+      - paranoia-level/1
+      - OWASP_CRS/ATTACK-SESSION-FIXATION
+      - capec/1000/225/21/593/61
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "2"
+    metadata:
+      id: 943013
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "2"
+    metadata:
+      id: 943014
+      phase: "2"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "3"
+    metadata:
+      comment: |+
+        -= Paranoia Level 2 =- (apply only when tx.detection_paranoia_level is sufficiently high: 2 or higher)
+
+      id: 943015
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "3"
+    metadata:
+      id: 943016
+      phase: "2"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "4"
+    metadata:
+      comment: |+
+        -= Paranoia Level 3 =- (apply only when tx.detection_paranoia_level is sufficiently high: 3 or higher)
+
+      id: 943017
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "4"
+    metadata:
+      id: 943018
+      phase: "2"
+    secMarker: END-REQUEST-943-APPLICATION-ATTACK-SESSION-FIXATION

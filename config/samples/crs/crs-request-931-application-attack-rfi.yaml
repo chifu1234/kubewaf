@@ -1,0 +1,333 @@
+apiVersion: seclang.kubewaf.io/v1beta1
+kind: SecRule
+metadata:
+  labels:
+    app.kubernetes.io/part-of: coreruleset
+    coreruleset/file: REQUEST-931-APPLICATION-ATTACK-RFI.conf
+    coreruleset/version: 4.3.0
+  name: crs-request-931-application-attack-rfi
+spec:
+  secLangRules:
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-931-APPLICATION-ATTACK-RFI
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "1"
+    metadata:
+      id: 931011
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-931-APPLICATION-ATTACK-RFI
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "1"
+    metadata:
+      id: 931012
+      phase: "2"
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}: %{MATCHED_VAR}'
+      - nonDisruptiveActionType: setvar
+        value: TX.rfi_score=+%{tx.critical_anomaly_score}
+      - nonDisruptiveActionType: setvar
+        value: TX.inbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+    conditions:
+    - collections:
+      - name: ARGS
+      - arguments:
+        - /*
+        name: XML
+      operator:
+        name: rx
+        value: (?i)^(file|ftps?|https?|ssh)://(?:\[?[a-f0-9]+:[a-f0-9:]+\]?|\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3})
+    metadata:
+      id: 931100
+      message: 'Possible Remote File Inclusion (RFI) Attack: URL Parameter using IP
+        Address'
+      phase: "2"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-multi
+      - attack-rfi
+      - paranoia-level/1
+      - OWASP_CRS/ATTACK-RFI
+      - capec/1000/152/175/253
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}: %{MATCHED_VAR}'
+      - nonDisruptiveActionType: setvar
+        value: TX.rfi_score=+%{tx.critical_anomaly_score}
+      - nonDisruptiveActionType: setvar
+        value: TX.inbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+    conditions:
+    - operator:
+        name: rx
+        value: (?i)(?:\binclude\s*\([^)]*|mosConfig_absolute_path|_CONF\[path\]|_SERVER\[DOCUMENT_ROOT\]|GALLERY_BASEDIR|path\[docroot\]|appserv_root|config\[root_dir\])=(?:file|ftps?|https?)://
+      variables:
+      - name: QUERY_STRING
+      - name: REQUEST_BODY
+    metadata:
+      id: 931110
+      message: 'Possible Remote File Inclusion (RFI) Attack: Common RFI Vulnerable
+        Parameter Name used w/URL Payload'
+      phase: "2"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-multi
+      - attack-rfi
+      - paranoia-level/1
+      - OWASP_CRS/ATTACK-RFI
+      - capec/1000/152/175/253
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}: %{MATCHED_VAR}'
+      - nonDisruptiveActionType: setvar
+        value: TX.rfi_score=+%{tx.critical_anomaly_score}
+      - nonDisruptiveActionType: setvar
+        value: TX.inbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+    conditions:
+    - collections:
+      - name: ARGS
+      operator:
+        name: rx
+        value: ^(?i:file|ftps?|https?).*?\?+$
+    metadata:
+      id: 931120
+      message: 'Possible Remote File Inclusion (RFI) Attack: URL Payload Used w/Trailing
+        Question Mark Character (?)'
+      phase: "2"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-multi
+      - attack-rfi
+      - paranoia-level/1
+      - OWASP_CRS/ATTACK-RFI
+      - capec/1000/152/175/253
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-931-APPLICATION-ATTACK-RFI
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "2"
+    metadata:
+      id: 931013
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-931-APPLICATION-ATTACK-RFI
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "2"
+    metadata:
+      id: 931014
+      phase: "2"
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      flow:
+      - flowActionType: chain
+        value: ""
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}: %{MATCHED_VAR}'
+      - nonDisruptiveActionType: setvar
+        value: TX.rfi_parameter_%{MATCHED_VAR_NAME}=.%{tx.1}
+    conditions:
+    - collections:
+      - name: ARGS
+      operator:
+        name: rx
+        value: (?i)(?:(?:url|jar):)?(?:a(?:cap|f[ps]|ttachment)|b(?:eshare|itcoin|lob)|c(?:a(?:llto|p)|id|vs|ompress.(?:zlib|bzip2))|d(?:a(?:v|ta)|ict|n(?:s|tp))|e(?:d2k|xpect)|f(?:(?:ee)?d|i(?:le|nger|sh)|tps?)|g(?:it|o(?:pher)?|lob)|h(?:323|ttps?)|i(?:ax|cap|(?:ma|p)ps?|rc[6s]?)|ja(?:bbe)?r|l(?:dap[is]?|ocal_file)|m(?:a(?:ilto|ven)|ms|umble)|n(?:e(?:tdoc|ws)|fs|ntps?)|ogg|p(?:aparazzi|h(?:ar|p)|op(?:2|3s?)|r(?:es|oxy)|syc)|r(?:mi|sync|tm(?:f?p)?|ar)|s(?:3|ftp|ips?|m(?:[bs]|tps?)|n(?:ews|mp)|sh(?:2(?:.(?:s(?:hell|(?:ft|c)p)|exec|tunnel))?)?|vn(?:\+ssh)?)|t(?:e(?:amspeak|lnet)|ftp|urns?)|u(?:dp|nreal|t2004)|v(?:entrilo|iew-source|nc)|w(?:ebcal|ss?)|x(?:mpp|ri)|zip)://?(?:[^@]+@)?([^/]*)
+    metadata:
+      id: 931130
+      message: 'Possible Remote File Inclusion (RFI) Attack: Off-Domain Reference/Link'
+      phase: "2"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-multi
+      - attack-rfi
+      - paranoia-level/2
+      - OWASP_CRS/ATTACK-RFI
+      - capec/1000/152/175/253
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      flow:
+      - flowActionType: chain
+        value: ""
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}: %{MATCHED_VAR}'
+      - nonDisruptiveActionType: setvar
+        value: TX.rfi_parameter_%{MATCHED_VAR_NAME}=.%{tx.1}
+    conditions:
+    - operator:
+        name: rx
+        value: (?i)(?:(?:url|jar):)?(?:a(?:cap|f[ps]|ttachment)|b(?:eshare|itcoin|lob)|c(?:a(?:llto|p)|id|vs|ompress.(?:zlib|bzip2))|d(?:a(?:v|ta)|ict|n(?:s|tp))|e(?:d2k|xpect)|f(?:(?:ee)?d|i(?:le|nger|sh)|tps?)|g(?:it|o(?:pher)?|lob)|h(?:323|ttps?)|i(?:ax|cap|(?:ma|p)ps?|rc[6s]?)|ja(?:bbe)?r|l(?:dap[is]?|ocal_file)|m(?:a(?:ilto|ven)|ms|umble)|n(?:e(?:tdoc|ws)|fs|ntps?)|ogg|p(?:aparazzi|h(?:ar|p)|op(?:2|3s?)|r(?:es|oxy)|syc)|r(?:mi|sync|tm(?:f?p)?|ar)|s(?:3|ftp|ips?|m(?:[bs]|tps?)|n(?:ews|mp)|sh(?:2(?:.(?:s(?:hell|(?:ft|c)p)|exec|tunnel))?)?|vn(?:\+ssh)?)|t(?:e(?:amspeak|lnet)|ftp|urns?)|u(?:dp|nreal|t2004)|v(?:entrilo|iew-source|nc)|w(?:ebcal|ss?)|x(?:mpp|ri)|zip)://(?:[^@]+@)?([^/]*)
+      variables:
+      - name: REQUEST_FILENAME
+    metadata:
+      comment: |+
+        This is a (stricter) sibling of 931130.
+
+        Regular expression generated from regex-assembly/931131.ra.
+        To update the regular expression run the following shell script
+        (consult https://coreruleset.org/docs/development/regex_assembly/ for details):
+          crs-toolchain regex update 931131
+
+      id: 931131
+      message: 'Possible Remote File Inclusion (RFI) Attack: Off-Domain Reference/Link'
+      phase: "1"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-multi
+      - attack-rfi
+      - paranoia-level/2
+      - OWASP_CRS/ATTACK-RFI
+      - capec/1000/152/175/253
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-931-APPLICATION-ATTACK-RFI
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "3"
+    metadata:
+      id: 931015
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-931-APPLICATION-ATTACK-RFI
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "3"
+    metadata:
+      id: 931016
+      phase: "2"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-931-APPLICATION-ATTACK-RFI
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "4"
+    metadata:
+      comment: |+
+        -= Paranoia Level 3 =- (apply only when tx.detection_paranoia_level is sufficiently high: 3 or higher)
+
+      id: 931017
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-931-APPLICATION-ATTACK-RFI
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "4"
+    metadata:
+      id: 931018
+      phase: "2"
+    secMarker: END-REQUEST-931-APPLICATION-ATTACK-RFI

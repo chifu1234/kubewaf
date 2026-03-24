@@ -1,0 +1,199 @@
+apiVersion: seclang.kubewaf.io/v1beta1
+kind: SecRule
+metadata:
+  labels:
+    app.kubernetes.io/part-of: coreruleset
+    coreruleset/file: REQUEST-913-SCANNER-DETECTION.conf
+    coreruleset/version: 4.3.0
+  name: crs-request-913-scanner-detection
+spec:
+  secLangRules:
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-913-SCANNER-DETECTION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "1"
+    metadata:
+      id: 913011
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-913-SCANNER-DETECTION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "1"
+    metadata:
+      id: 913012
+      phase: "2"
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}: %{MATCHED_VAR}'
+      - nonDisruptiveActionType: setvar
+        value: TX.inbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+    conditions:
+    - collections:
+      - arguments:
+        - User-Agent
+        name: REQUEST_HEADERS
+      operator:
+        name: pmFromFile
+        value: scanners-user-agents.data
+    metadata:
+      id: 913100
+      message: Found User-Agent associated with security scanner
+      phase: "1"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-multi
+      - attack-reputation-scanner
+      - paranoia-level/1
+      - OWASP_CRS/SCANNER-DETECTION
+      - capec/1000/118/224/541/310
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-913-SCANNER-DETECTION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "2"
+    metadata:
+      id: 913013
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-913-SCANNER-DETECTION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "2"
+    metadata:
+      id: 913014
+      phase: "2"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-913-SCANNER-DETECTION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "3"
+    metadata:
+      comment: |+
+        -= Paranoia Level 2 =- (apply only when tx.detection_paranoia_level is sufficiently high: 2 or higher)
+
+      id: 913015
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-913-SCANNER-DETECTION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "3"
+    metadata:
+      id: 913016
+      phase: "2"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-913-SCANNER-DETECTION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "4"
+    metadata:
+      comment: |+
+        -= Paranoia Level 3 =- (apply only when tx.detection_paranoia_level is sufficiently high: 3 or higher)
+
+      id: 913017
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-913-SCANNER-DETECTION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "4"
+    metadata:
+      id: 913018
+      phase: "2"
+    secMarker: END-REQUEST-913-SCANNER-DETECTION

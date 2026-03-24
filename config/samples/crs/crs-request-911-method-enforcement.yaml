@@ -1,0 +1,197 @@
+apiVersion: seclang.kubewaf.io/v1beta1
+kind: SecRule
+metadata:
+  labels:
+    app.kubernetes.io/part-of: coreruleset
+    coreruleset/file: REQUEST-911-METHOD-ENFORCEMENT.conf
+    coreruleset/version: 4.3.0
+  name: crs-request-911-method-enforcement
+spec:
+  secLangRules:
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-911-METHOD-ENFORCEMENT
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "1"
+    metadata:
+      id: 911011
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-911-METHOD-ENFORCEMENT
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "1"
+    metadata:
+      id: 911012
+      phase: "2"
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: logdata
+        value: '%{MATCHED_VAR}'
+      - nonDisruptiveActionType: setvar
+        value: TX.inbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+    conditions:
+    - operator:
+        name: within
+        negate: true
+        value: '%{tx.allowed_methods}'
+      variables:
+      - name: REQUEST_METHOD
+    metadata:
+      id: 911100
+      message: Method is not allowed by policy
+      phase: "1"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-multi
+      - attack-generic
+      - paranoia-level/1
+      - OWASP_CRS/METHOD-ENFORCEMENT
+      - capec/1000/210/272/220/274
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-911-METHOD-ENFORCEMENT
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "2"
+    metadata:
+      id: 911013
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-911-METHOD-ENFORCEMENT
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "2"
+    metadata:
+      id: 911014
+      phase: "2"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-911-METHOD-ENFORCEMENT
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "3"
+    metadata:
+      comment: |+
+        -= Paranoia Level 2 =- (apply only when tx.detection_paranoia_level is sufficiently high: 2 or higher)
+
+      id: 911015
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-911-METHOD-ENFORCEMENT
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "3"
+    metadata:
+      id: 911016
+      phase: "2"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-911-METHOD-ENFORCEMENT
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "4"
+    metadata:
+      comment: |+
+        -= Paranoia Level 3 =- (apply only when tx.detection_paranoia_level is sufficiently high: 3 or higher)
+
+      id: 911017
+      phase: "1"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-REQUEST-911-METHOD-ENFORCEMENT
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "4"
+    metadata:
+      id: 911018
+      phase: "2"
+    secMarker: END-REQUEST-911-METHOD-ENFORCEMENT

@@ -1,0 +1,735 @@
+apiVersion: seclang.kubewaf.io/v1beta1
+kind: SecRule
+metadata:
+  labels:
+    app.kubernetes.io/part-of: coreruleset
+    coreruleset/file: RESPONSE-951-DATA-LEAKAGES-SQL.conf
+    coreruleset/version: 4.3.0
+  name: crs-response-951-data-leakages-sql
+spec:
+  secLangRules:
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-951-DATA-LEAKAGES-SQL
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - Content-Encoding
+        name: RESPONSE_HEADERS
+      operator:
+        name: pm
+        value: gzip compress deflate br zstd
+    metadata:
+      id: 951010
+      phase: "4"
+      tags:
+      - OWASP_CRS/DATA-LEAKAGES-SQL
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-951-DATA-LEAKAGES-SQL
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "1"
+    metadata:
+      id: 951011
+      phase: "3"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-951-DATA-LEAKAGES-SQL
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "1"
+    metadata:
+      id: 951012
+      phase: "4"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-SQL-ERROR-MATCH-PL1
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - operator:
+        name: pmFromFile
+        negate: true
+        value: sql-errors.data
+      variables:
+      - name: RESPONSE_BODY
+    metadata:
+      id: 951100
+      phase: "4"
+      tags:
+      - application-multi
+      - language-multi
+      - platform-multi
+      - attack-disclosure
+      - OWASP_CRS/DATA-LEAKAGES-SQL
+      - capec/1000/118/116/54
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}'
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+      - nonDisruptiveActionType: setvar
+        value: TX.sql_injection_score=+%{tx.critical_anomaly_score}
+    conditions:
+    - operator:
+        name: rx
+        value: (?i:JET Database Engine|Access Database Engine|\[Microsoft\]\[ODBC
+          Microsoft Access Driver\])
+      variables:
+      - name: RESPONSE_BODY
+    metadata:
+      id: 951110
+      message: Microsoft Access SQL Information Leakage
+      phase: "4"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-msaccess
+      - attack-disclosure
+      - paranoia-level/1
+      - OWASP_CRS/DATA-LEAKAGES-SQL
+      - capec/1000/118/116/54
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}'
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+      - nonDisruptiveActionType: setvar
+        value: TX.sql_injection_score=+%{tx.critical_anomaly_score}
+    conditions:
+    - operator:
+        name: rx
+        value: '(?i)\bORA-[0-9][0-9][0-9][0-9][0-9]:|java\.sql\.SQLException|Oracle(?:
+          erro|[^\(\)]{0,20}Drive)r|Warning.{1,10}o(?:ci_.{1,30}|ra_.{1,20})'
+      variables:
+      - name: RESPONSE_BODY
+    metadata:
+      comment: |+
+        Regular expression generated from regex-assembly/951120.ra.
+        To update the regular expression run the following shell script
+        (consult https://coreruleset.org/docs/development/regex_assembly/ for details):
+          crs-toolchain regex update 951120
+
+      id: 951120
+      message: Oracle SQL Information Leakage
+      phase: "4"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-oracle
+      - attack-disclosure
+      - paranoia-level/1
+      - OWASP_CRS/DATA-LEAKAGES-SQL
+      - capec/1000/118/116/54
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}'
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+      - nonDisruptiveActionType: setvar
+        value: TX.sql_injection_score=+%{tx.critical_anomaly_score}
+    conditions:
+    - operator:
+        name: rx
+        value: (?i:DB2 SQL error:|\[IBM\]\[CLI Driver\]\[DB2/6000\]|CLI Driver.*DB2|DB2
+          SQL error|db2_\w+\()
+      variables:
+      - name: RESPONSE_BODY
+    metadata:
+      id: 951130
+      message: DB2 SQL Information Leakage
+      phase: "4"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-db2
+      - attack-disclosure
+      - paranoia-level/1
+      - OWASP_CRS/DATA-LEAKAGES-SQL
+      - capec/1000/118/116/54
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}'
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+      - nonDisruptiveActionType: setvar
+        value: TX.sql_injection_score=+%{tx.critical_anomaly_score}
+    conditions:
+    - operator:
+        name: rx
+        value: (?i:\[DM_QUERY_E_SYNTAX\]|has occurred in the vicinity of:)
+      variables:
+      - name: RESPONSE_BODY
+    metadata:
+      id: 951140
+      message: EMC SQL Information Leakage
+      phase: "4"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-emc
+      - attack-disclosure
+      - paranoia-level/1
+      - OWASP_CRS/DATA-LEAKAGES-SQL
+      - capec/1000/118/116/54
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}'
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+      - nonDisruptiveActionType: setvar
+        value: TX.sql_injection_score=+%{tx.critical_anomaly_score}
+    conditions:
+    - operator:
+        name: rx
+        value: (?i)Dynamic SQL Error
+      variables:
+      - name: RESPONSE_BODY
+    metadata:
+      id: 951150
+      message: firebird SQL Information Leakage
+      phase: "4"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-firebird
+      - attack-disclosure
+      - paranoia-level/1
+      - OWASP_CRS/DATA-LEAKAGES-SQL
+      - capec/1000/118/116/54
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}'
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+      - nonDisruptiveActionType: setvar
+        value: TX.sql_injection_score=+%{tx.critical_anomaly_score}
+    conditions:
+    - operator:
+        name: rx
+        value: (?i)Exception (?:condition )?\d+\. Transaction rollback\.
+      variables:
+      - name: RESPONSE_BODY
+    metadata:
+      id: 951160
+      message: Frontbase SQL Information Leakage
+      phase: "4"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-frontbase
+      - attack-disclosure
+      - paranoia-level/1
+      - OWASP_CRS/DATA-LEAKAGES-SQL
+      - capec/1000/118/116/54
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}'
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+      - nonDisruptiveActionType: setvar
+        value: TX.sql_injection_score=+%{tx.critical_anomaly_score}
+    conditions:
+    - operator:
+        name: rx
+        value: (?i)org\.hsqldb\.jdbc
+      variables:
+      - name: RESPONSE_BODY
+    metadata:
+      id: 951170
+      message: hsqldb SQL Information Leakage
+      phase: "4"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-hsqldb
+      - attack-disclosure
+      - paranoia-level/1
+      - OWASP_CRS/DATA-LEAKAGES-SQL
+      - capec/1000/118/116/54
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}'
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+      - nonDisruptiveActionType: setvar
+        value: TX.sql_injection_score=+%{tx.critical_anomaly_score}
+    conditions:
+    - operator:
+        name: rx
+        value: (?i:An illegal character has been found in the statement|com\.informix\.jdbc|Exception.*Informix)
+      variables:
+      - name: RESPONSE_BODY
+    metadata:
+      id: 951180
+      message: informix SQL Information Leakage
+      phase: "4"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-informix
+      - attack-disclosure
+      - paranoia-level/1
+      - OWASP_CRS/DATA-LEAKAGES-SQL
+      - capec/1000/118/116/54
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}'
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+      - nonDisruptiveActionType: setvar
+        value: TX.sql_injection_score=+%{tx.critical_anomaly_score}
+    conditions:
+    - operator:
+        name: rx
+        value: (?i:Warning.*ingres_|Ingres SQLSTATE|Ingres\W.*Driver)
+      variables:
+      - name: RESPONSE_BODY
+    metadata:
+      id: 951190
+      message: ingres SQL Information Leakage
+      phase: "4"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-ingres
+      - attack-disclosure
+      - paranoia-level/1
+      - OWASP_CRS/DATA-LEAKAGES-SQL
+      - capec/1000/118/116/54
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}'
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+      - nonDisruptiveActionType: setvar
+        value: TX.sql_injection_score=+%{tx.critical_anomaly_score}
+    conditions:
+    - operator:
+        name: rx
+        value: '(?i:<b>Warning</b>: ibase_|Unexpected end of command in statement)'
+      variables:
+      - name: RESPONSE_BODY
+    metadata:
+      id: 951200
+      message: interbase SQL Information Leakage
+      phase: "4"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-interbase
+      - attack-disclosure
+      - paranoia-level/1
+      - OWASP_CRS/DATA-LEAKAGES-SQL
+      - capec/1000/118/116/54
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}'
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+      - nonDisruptiveActionType: setvar
+        value: TX.sql_injection_score=+%{tx.critical_anomaly_score}
+    conditions:
+    - operator:
+        name: rx
+        value: (?i:SQL error.*POS[0-9]+.*|Warning.*maxdb.*)
+      variables:
+      - name: RESPONSE_BODY
+    metadata:
+      id: 951210
+      message: maxDB SQL Information Leakage
+      phase: "4"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-maxdb
+      - attack-disclosure
+      - paranoia-level/1
+      - OWASP_CRS/DATA-LEAKAGES-SQL
+      - capec/1000/118/116/54
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}'
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+      - nonDisruptiveActionType: setvar
+        value: TX.sql_injection_score=+%{tx.critical_anomaly_score}
+    conditions:
+    - operator:
+        name: rx
+        value: (?i)(?:System\.Data\.OleDb\.OleDbException|\[Microsoft\]\[ODBC SQL
+          Server Driver\]|\[Macromedia\]\[SQLServer JDBC Driver\]|\[SqlException|System\.Data\.SqlClient\.SqlException|Unclosed
+          quotation mark after the character string|'80040e14'|mssql_query\(\)|Microsoft
+          OLE DB Provider for ODBC Drivers|Microsoft OLE DB Provider for SQL Server|Incorrect
+          syntax near|Sintaxis incorrecta cerca de|Syntax error in string in query
+          expression|Procedure or function '.{1,128}' expects parameter|Unclosed quotation
+          mark before the character string|Syntax error .* in query expression|Data
+          type mismatch in criteria expression\.|ADODB\.Field \(0x800A0BCD\)|the used
+          select statements have different number of columns|OLE DB.*SQL Server|Warning.*mssql_.*|Driver.*SQL[
+          _-]*Server|Exception.*\WSystem\.Data\.SqlClient\.|Conversion failed when
+          converting the varchar value .*? to data type int\.)
+      variables:
+      - name: RESPONSE_BODY
+    metadata:
+      id: 951220
+      message: mssql SQL Information Leakage
+      phase: "4"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-mssql
+      - attack-disclosure
+      - paranoia-level/1
+      - OWASP_CRS/DATA-LEAKAGES-SQL
+      - capec/1000/118/116/54
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}'
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+      - nonDisruptiveActionType: setvar
+        value: TX.sql_injection_score=+%{tx.critical_anomaly_score}
+    conditions:
+    - operator:
+        name: rx
+        value: '(?i)(?:supplied argument is not a valid |SQL syntax.*)MySQL|Column
+          count doesn''t match(?: value count at row)?|mysql_fetch_array\(\)|on MySQL
+          result index|You have an error in your SQL syntax(?:;| near)|MyS(?:QL server
+          version for the right syntax to use|qlClient\.)|\[MySQL\]\[ODBC|(?:Table
+          ''[^'']+'' doesn''t exis|valid MySQL resul)t|Warning.{1,10}mysql_(?:[\(\)_a-z]{1,26})?|(?:ERROR
+          [0-9]{4} \([0-9a-z]{5}\)|XPATH syntax error):'
+      variables:
+      - name: RESPONSE_BODY
+    metadata:
+      comment: |+
+        Regular expression generated from regex-assembly/951230.ra.
+        To update the regular expression run the following shell script
+        (consult https://coreruleset.org/docs/development/regex_assembly/ for details):
+          crs-toolchain regex update 951230
+
+      id: 951230
+      message: mysql SQL Information Leakage
+      phase: "4"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-mysql
+      - attack-disclosure
+      - paranoia-level/1
+      - OWASP_CRS/DATA-LEAKAGES-SQL
+      - capec/1000/118/116/54
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}'
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+      - nonDisruptiveActionType: setvar
+        value: TX.sql_injection_score=+%{tx.critical_anomaly_score}
+    conditions:
+    - operator:
+        name: rx
+        value: '(?i)P(?:ostgreSQL(?: query failed:|.{1,20}ERROR)|G::[a-z]*Error)|(?:pg_(?:query|exec)\(\)
+          \[|org\.postgresql\.util\.PSQLException):|Warning.{1,20}\bpg_.*|valid PostgreSQL
+          result|Npgsql\.|Supplied argument is not a valid PostgreSQL .*? resource|(?:Unable
+          to connect to PostgreSQL serv|invalid input syntax for integ)er'
+      variables:
+      - name: RESPONSE_BODY
+    metadata:
+      comment: |+
+        Regular expression generated from regex-assembly/951240.ra.
+        To update the regular expression run the following shell script
+        (consult https://coreruleset.org/docs/development/regex_assembly/ for details):
+          crs-toolchain regex update 951240
+
+      id: 951240
+      message: postgres SQL Information Leakage
+      phase: "4"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-pgsql
+      - attack-disclosure
+      - paranoia-level/1
+      - OWASP_CRS/DATA-LEAKAGES-SQL
+      - capec/1000/118/116/54
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}'
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+      - nonDisruptiveActionType: setvar
+        value: TX.sql_injection_score=+%{tx.critical_anomaly_score}
+    conditions:
+    - operator:
+        name: rx
+        value: (?i)(?:Warning.*sqlite_|Warning.*SQLite3::|SQLite/JDBCDriver|SQLite\.Exception|System\.Data\.SQLite\.SQLiteException)
+      variables:
+      - name: RESPONSE_BODY
+    metadata:
+      id: 951250
+      message: sqlite SQL Information Leakage
+      phase: "4"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-sqlite
+      - attack-disclosure
+      - paranoia-level/1
+      - OWASP_CRS/DATA-LEAKAGES-SQL
+      - capec/1000/118/116/54
+  - actions:
+      disruptive:
+        disruptiveActionType: block
+      non-disruptive:
+      - nonDisruptiveActionType: capture
+      - nonDisruptiveActionType: logdata
+        value: 'Matched Data: %{TX.0} found within %{MATCHED_VAR_NAME}'
+      - nonDisruptiveActionType: setvar
+        value: TX.outbound_anomaly_score_pl1=+%{tx.critical_anomaly_score}
+      - nonDisruptiveActionType: setvar
+        value: TX.sql_injection_score=+%{tx.critical_anomaly_score}
+    conditions:
+    - operator:
+        name: rx
+        value: (?i)(?:Sybase message:|Warning.{2,20}sybase|Sybase.*Server message)
+      variables:
+      - name: RESPONSE_BODY
+    metadata:
+      id: 951260
+      message: Sybase SQL Information Leakage
+      phase: "4"
+      severity: CRITICAL
+      tags:
+      - application-multi
+      - language-multi
+      - platform-sybase
+      - attack-disclosure
+      - paranoia-level/1
+      - OWASP_CRS/DATA-LEAKAGES-SQL
+      - capec/1000/118/116/54
+    secMarker: END-SQL-ERROR-MATCH-PL1
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-951-DATA-LEAKAGES-SQL
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "2"
+    metadata:
+      id: 951013
+      phase: "3"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-951-DATA-LEAKAGES-SQL
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "2"
+    metadata:
+      id: 951014
+      phase: "4"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-951-DATA-LEAKAGES-SQL
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "3"
+    metadata:
+      comment: |+
+        -= Paranoia Level 2 =- (apply only when tx.detection_paranoia_level is sufficiently high: 2 or higher)
+
+      id: 951015
+      phase: "3"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-951-DATA-LEAKAGES-SQL
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "3"
+    metadata:
+      id: 951016
+      phase: "4"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-951-DATA-LEAKAGES-SQL
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "4"
+    metadata:
+      comment: |+
+        -= Paranoia Level 3 =- (apply only when tx.detection_paranoia_level is sufficiently high: 3 or higher)
+
+      id: 951017
+      phase: "3"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-951-DATA-LEAKAGES-SQL
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "4"
+    metadata:
+      id: 951018
+      phase: "4"
+    secMarker: END-RESPONSE-951-DATA-LEAKAGES-SQL

@@ -1,0 +1,84 @@
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: manager-role
+rules:
+- apiGroups:
+  - seclan.kubewaf.io
+  resources:
+  - secrules
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - seclan.kubewaf.io
+  resources:
+  - secrules/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - seclan.kubewaf.io
+  resources:
+  - secrules/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - seclang.kubewaf.io
+  resources:
+  - secactions
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - seclang.kubewaf.io
+  resources:
+  - secactions/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - seclang.kubewaf.io
+  resources:
+  - secactions/status
+  verbs:
+  - get
+  - patch
+  - update
+- apiGroups:
+  - waf.kubewaf.io
+  resources:
+  - rulesets
+  verbs:
+  - create
+  - delete
+  - get
+  - list
+  - patch
+  - update
+  - watch
+- apiGroups:
+  - waf.kubewaf.io
+  resources:
+  - rulesets/finalizers
+  verbs:
+  - update
+- apiGroups:
+  - waf.kubewaf.io
+  resources:
+  - rulesets/status
+  verbs:
+  - get
+  - patch
+  - update

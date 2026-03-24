@@ -1,0 +1,540 @@
+apiVersion: seclang.kubewaf.io/v1beta1
+kind: SecRule
+metadata:
+  labels:
+    app.kubernetes.io/part-of: coreruleset
+    coreruleset/file: RESPONSE-959-BLOCKING-EVALUATION.conf
+    coreruleset/version: 4.3.0
+  name: crs-response-959-blocking-evaluation
+spec:
+  secLangRules:
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.blocking_outbound_anomaly_score=+%{tx.outbound_anomaly_score_pl1}
+    conditions:
+    - collections:
+      - arguments:
+        - BLOCKING_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: ge
+        value: "1"
+    metadata:
+      id: 959052
+      phase: "3"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.detection_outbound_anomaly_score=+%{tx.outbound_anomaly_score_pl1}
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: ge
+        value: "1"
+    metadata:
+      id: 959152
+      phase: "3"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.blocking_outbound_anomaly_score=+%{tx.outbound_anomaly_score_pl2}
+    conditions:
+    - collections:
+      - arguments:
+        - BLOCKING_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: ge
+        value: "2"
+    metadata:
+      id: 959053
+      phase: "3"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.detection_outbound_anomaly_score=+%{tx.outbound_anomaly_score_pl2}
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: ge
+        value: "2"
+    metadata:
+      id: 959153
+      phase: "3"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.blocking_outbound_anomaly_score=+%{tx.outbound_anomaly_score_pl3}
+    conditions:
+    - collections:
+      - arguments:
+        - BLOCKING_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: ge
+        value: "3"
+    metadata:
+      id: 959054
+      phase: "3"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.detection_outbound_anomaly_score=+%{tx.outbound_anomaly_score_pl3}
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: ge
+        value: "3"
+    metadata:
+      id: 959154
+      phase: "3"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.blocking_outbound_anomaly_score=+%{tx.outbound_anomaly_score_pl4}
+    conditions:
+    - collections:
+      - arguments:
+        - BLOCKING_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: ge
+        value: "4"
+    metadata:
+      id: 959055
+      phase: "3"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.detection_outbound_anomaly_score=+%{tx.outbound_anomaly_score_pl4}
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: ge
+        value: "4"
+    metadata:
+      id: 959155
+      phase: "3"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.blocking_outbound_anomaly_score=0
+    conditions:
+    - always-match: true
+      operator:
+        name: unknownOperator
+    metadata:
+      comment: |
+        at start of phase 4, we reset the aggregate scores to 0 to prevent duplicate counting of per-PL scores
+        this is necessary because the per-PL scores are counted across phases
+      id: 959059
+      phase: "4"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.detection_outbound_anomaly_score=0
+    conditions:
+    - always-match: true
+      operator:
+        name: unknownOperator
+    metadata:
+      id: 959159
+      phase: "4"
+    secMarker: EARLY_BLOCKING_ANOMALY_SCORING
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.blocking_outbound_anomaly_score=+%{tx.outbound_anomaly_score_pl1}
+    conditions:
+    - collections:
+      - arguments:
+        - BLOCKING_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: ge
+        value: "1"
+    metadata:
+      comment: |
+        Summing up the blocking and detection anomaly scores in phase 4
+      id: 959060
+      phase: "4"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.detection_outbound_anomaly_score=+%{tx.outbound_anomaly_score_pl1}
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: ge
+        value: "1"
+    metadata:
+      id: 959160
+      phase: "4"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.blocking_outbound_anomaly_score=+%{tx.outbound_anomaly_score_pl2}
+    conditions:
+    - collections:
+      - arguments:
+        - BLOCKING_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: ge
+        value: "2"
+    metadata:
+      id: 959061
+      phase: "4"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.detection_outbound_anomaly_score=+%{tx.outbound_anomaly_score_pl2}
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: ge
+        value: "2"
+    metadata:
+      id: 959161
+      phase: "4"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.blocking_outbound_anomaly_score=+%{tx.outbound_anomaly_score_pl3}
+    conditions:
+    - collections:
+      - arguments:
+        - BLOCKING_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: ge
+        value: "3"
+    metadata:
+      id: 959062
+      phase: "4"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.detection_outbound_anomaly_score=+%{tx.outbound_anomaly_score_pl3}
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: ge
+        value: "3"
+    metadata:
+      id: 959162
+      phase: "4"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.blocking_outbound_anomaly_score=+%{tx.outbound_anomaly_score_pl4}
+    conditions:
+    - collections:
+      - arguments:
+        - BLOCKING_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: ge
+        value: "4"
+    metadata:
+      id: 959063
+      phase: "4"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+      - nonDisruptiveActionType: setvar
+        value: TX.detection_outbound_anomaly_score=+%{tx.outbound_anomaly_score_pl4}
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: ge
+        value: "4"
+    metadata:
+      id: 959163
+      phase: "4"
+  - actions:
+      disruptive:
+        disruptiveActionType: deny
+      flow:
+      - flowActionType: chain
+        value: ""
+    conditions:
+    - collections:
+      - arguments:
+        - BLOCKING_OUTBOUND_ANOMALY_SCORE
+        name: TX
+      operator:
+        name: ge
+        value: '%{tx.outbound_anomaly_score_threshold}'
+    - collections:
+      - arguments:
+        - EARLY_BLOCKING
+        name: TX
+      operator:
+        name: eq
+        value: "1"
+    metadata:
+      id: 959101
+      message: 'Outbound Anomaly Score Exceeded in phase 3 (Total Score: %{tx.blocking_outbound_anomaly_score})'
+      phase: "3"
+      tags:
+      - anomaly-evaluation
+  - actions:
+      disruptive:
+        disruptiveActionType: deny
+    conditions:
+    - collections:
+      - arguments:
+        - BLOCKING_OUTBOUND_ANOMALY_SCORE
+        name: TX
+      operator:
+        name: ge
+        value: '%{tx.outbound_anomaly_score_threshold}'
+    metadata:
+      comment: |
+        always check threshold in phase 4
+      id: 959100
+      message: 'Outbound Anomaly Score Exceeded (Total Score: %{tx.blocking_outbound_anomaly_score})'
+      phase: "4"
+      tags:
+      - anomaly-evaluation
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-959-BLOCKING-EVALUATION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "1"
+    metadata:
+      id: 959011
+      phase: "3"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-959-BLOCKING-EVALUATION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "1"
+    metadata:
+      id: 959012
+      phase: "4"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-959-BLOCKING-EVALUATION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "2"
+    metadata:
+      comment: |+
+        -= Paranoia Level 1 (default) =- (apply only when tx.detection_paranoia_level is sufficiently high: 1 or higher)
+
+      id: 959013
+      phase: "3"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-959-BLOCKING-EVALUATION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "2"
+    metadata:
+      id: 959014
+      phase: "4"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-959-BLOCKING-EVALUATION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "3"
+    metadata:
+      comment: |+
+        -= Paranoia Level 2 =- (apply only when tx.detection_paranoia_level is sufficiently high: 2 or higher)
+
+      id: 959015
+      phase: "3"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-959-BLOCKING-EVALUATION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "3"
+    metadata:
+      id: 959016
+      phase: "4"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-959-BLOCKING-EVALUATION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "4"
+    metadata:
+      comment: |+
+        -= Paranoia Level 3 =- (apply only when tx.detection_paranoia_level is sufficiently high: 3 or higher)
+
+      id: 959017
+      phase: "3"
+  - actions:
+      disruptive:
+        disruptiveActionType: pass
+      flow:
+      - flowActionType: skipAfter
+        value: END-RESPONSE-959-BLOCKING-EVALUATION
+      non-disruptive:
+      - nonDisruptiveActionType: nolog
+    conditions:
+    - collections:
+      - arguments:
+        - DETECTION_PARANOIA_LEVEL
+        name: TX
+      operator:
+        name: lt
+        value: "4"
+    metadata:
+      id: 959018
+      phase: "4"
+    secMarker: END-RESPONSE-959-BLOCKING-EVALUATION
