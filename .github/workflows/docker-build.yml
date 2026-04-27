@@ -1,0 +1,45 @@
+name: Build images
+permissions: {}
+on:
+  pull_request:
+    branches:
+      - "main"
+    paths:
+      - '.github/workflows/docker-*.yml'
+      - 'api/**'
+      - 'controllers/**'
+      - 'pkg/**'
+      - 'e2e/*'
+      - '.ko.yaml'
+      - 'go.*'
+      - 'main.go'
+      - 'Makefile'
+
+jobs:
+  build-images:
+    runs-on: ubuntu-latest
+    permissions:
+      security-events: write
+      actions: read
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+      - name: ko build
+        run: VERSION=${{ github.sha }} make ko-build-all
+      - name: Trivy Scan Image
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
+        with:
+          scan-type: 'fs'
+          ignore-unfixed: true
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+        env:
+          # Trivy is returning TOOMANYREQUESTS
+          # See: https://github.com/aquasecurity/trivy-action/issues/389#issuecomment-2385416577
+          TRIVY_DB_REPOSITORY: 'public.ecr.aws/aquasecurity/trivy-db:2'
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@34950e1b113b30df4edee1a6d3a605242df0c40b
+        with:
+          sarif_file: 'trivy-results.sarif'
