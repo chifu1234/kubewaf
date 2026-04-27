@@ -197,6 +197,7 @@ $(LOCALBIN):
 
 ## Tool Binaries
 KUBECTL ?= kubectl
+HELM ?= helm
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
 ENVTEST ?= $(LOCALBIN)/setup-envtest
 

@@ -63,8 +63,6 @@ release:
 
     - `ghcr.io/kubewaf-io/charts/{{ .ProjectName }}:{{ .Version }}`
 
-    [Review the Major Changes section first before upgrading to a new version](https://artifacthub.io/packages/helm/kubewaf/kubewaf/{{ .Version }}#major-changes)
-
     Thanks to all the contributors! 🚀 🦄
 checksum:
   name_template: 'checksums.txt'
