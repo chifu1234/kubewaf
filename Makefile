@@ -1,6 +1,19 @@
 # Image URL to use all building/pushing image targets
 IMG ?= controller:latest
 
+# Defaults
+REGISTRY        ?= ghcr.io
+REPOSITORY      ?= kubewaf-io/kubewaf
+GIT_TAG_COMMIT  ?= $(shell git rev-parse --short $(VERSION))
+GIT_MODIFIED_1  ?= $(shell git diff $(GIT_HEAD_COMMIT) $(GIT_TAG_COMMIT) --quiet && echo "" || echo ".dev")
+GIT_MODIFIED_2  ?= $(shell git diff --quiet && echo "" || echo ".dirty")
+GIT_MODIFIED    ?= $(shell echo "$(GIT_MODIFIED_1)$(GIT_MODIFIED_2)")
+GIT_REPO        ?= $(shell git config --get remote.origin.url)
+BUILD_DATE      ?= $(shell git log -1 --format="%at" | xargs -I{} sh -c 'if [ "$(shell uname)" = "Darwin" ]; then date -r {} +%Y-%m-%dT%H:%M:%S; else date -d @{} +%Y-%m-%dT%H:%M:%S; fi')
+IMG_BASE        ?= $(REPOSITORY)
+IMG             ?= $(IMG_BASE):$(VERSION)
+CONTROLLER_IMG  ?= $(REGISTRY)/$(IMG_BASE)
+
 # Get the currently used golang install path (in GOPATH/bin, unless GOBIN is set)
 ifeq (,$(shell go env GOBIN))
 GOBIN=$(shell go env GOPATH)/bin
@@ -42,8 +55,8 @@ help: ## Display this help.
 ##@ Development
 
 .PHONY: manifests
-manifests: controller-gen ## Generate WebhookConfiguration, ClusterRole and CustomResourceDefinition objects.
-	"$(CONTROLLER_GEN)" rbac:roleName=manager-role crd webhook paths="./..." output:crd:artifacts:config=config/crd/bases
+manifests: controller-gen ## Generate CustomResourceDefinition objects.
+	"$(CONTROLLER_GEN)" crd paths="./..." output:crd:artifacts:config=charts/kubewaf/crds
 
 .PHONY: generate
 generate: controller-gen ## Generate code containing DeepCopy, DeepCopyInto, and DeepCopyObject method implementations.
@@ -184,11 +197,8 @@ $(LOCALBIN):
 
 ## Tool Binaries
 KUBECTL ?= kubectl
-KIND ?= kind
 KUSTOMIZE ?= $(LOCALBIN)/kustomize
-CONTROLLER_GEN ?= $(LOCALBIN)/controller-gen
 ENVTEST ?= $(LOCALBIN)/setup-envtest
-GOLANGCI_LINT = $(LOCALBIN)/golangci-lint
 
 ## Tool Versions
 KUSTOMIZE_VERSION ?= v5.7.1
@@ -210,11 +220,6 @@ kustomize: $(KUSTOMIZE) ## Download kustomize locally if necessary.
 $(KUSTOMIZE): $(LOCALBIN)
 	$(call go-install-tool,$(KUSTOMIZE),sigs.k8s.io/kustomize/kustomize/v5,$(KUSTOMIZE_VERSION))
 
-.PHONY: controller-gen
-controller-gen: $(CONTROLLER_GEN) ## Download controller-gen locally if necessary.
-$(CONTROLLER_GEN): $(LOCALBIN)
-	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen,$(CONTROLLER_TOOLS_VERSION))
-
 .PHONY: setup-envtest
 setup-envtest: envtest ## Download the binaries required for ENVTEST in the local bin directory.
 	@echo "Setting up envtest binaries for Kubernetes version $(ENVTEST_K8S_VERSION)..."
@@ -228,25 +233,164 @@ envtest: $(ENVTEST) ## Download setup-envtest locally if necessary.
 $(ENVTEST): $(LOCALBIN)
 	$(call go-install-tool,$(ENVTEST),sigs.k8s.io/controller-runtime/tools/setup-envtest,$(ENVTEST_VERSION))
 
-.PHONY: golangci-lint
-golangci-lint: $(GOLANGCI_LINT) ## Download golangci-lint locally if necessary.
-$(GOLANGCI_LINT): $(LOCALBIN)
-	$(call go-install-tool,$(GOLANGCI_LINT),github.com/golangci/golangci-lint/v2/cmd/golangci-lint,$(GOLANGCI_LINT_VERSION))
+license-headers: nwa
+	$(NWA) config
+
+####################
+# -- Docker
+####################
+
+KO_PLATFORM     ?= $(GOOS)/$(GO_ARCH)
+KOCACHE         ?= /tmp/ko-cache
+KO_TAGS         ?= "latest"
+
+KO_TAGS         ?= "latest"
+ifdef VERSION
+KO_TAGS         := $(KO_TAGS),$(VERSION)
+endif
+
+
+LD_FLAGS        := "-X main.Version=$(VERSION) \
+					-X main.GitCommit=$(GIT_HEAD_COMMIT) \
+					-X main.GitTag=$(VERSION) \
+					-X main.GitTreeState=$(GIT_MODIFIED) \
+					-X main.BuildDate=$(BUILD_DATE) \
+					-X main.GitRepo=$(GIT_REPO)"
+
+# Docker Image Build
+# ------------------
+
+.PHONY: ko-build-controller
+ko-build-controller: ko
+	echo Building Controller $(KO_TAGS) for $(KO_PLATFORM) >&2
+	@LD_FLAGS=$(LD_FLAGS) KOCACHE=$(KOCACHE) KO_DOCKER_REPO=$(CONTROLLER_IMG) \
+		$(KO) build ./cmd --bare --tags=$(KO_TAGS) --local --push=false --platform=$(KO_PLATFORM)
+
+.PHONY: ko-build-all
+ko-build-all: ko-build-controller
+
+# Docker Image Publish
+# ------------------
+
+REGISTRY_PASSWORD   ?= dummy
+REGISTRY_USERNAME   ?= dummy
+
+.PHONY: ko-login
+ko-login: ko
+	@$(KO) login $(REGISTRY) --username $(REGISTRY_USERNAME) --password $(REGISTRY_PASSWORD)
+
+.PHONY: ko-publish-controller
+ko-publish-controller: ko-login
+	@LD_FLAGS=$(LD_FLAGS) KOCACHE=$(KOCACHE) KO_DOCKER_REPO=$(CONTROLLER_IMG) \
+		$(KO) build ./ --bare --tags=$(KO_TAGS)
+
+.PHONY: ko-publish-all
+ko-publish-all: ko-publish-controller
+
+####################
+# -- Helm
+####################
+
+helm-controller-version:
+	$(eval VERSION := $(shell grep 'appVersion:' charts/kubewaf/Chart.yaml | awk '{print "v"$$2}'))
+	$(eval KO_TAGS := $(shell grep 'appVersion:' charts/kubewaf/Chart.yaml | awk '{print "v"$$2}'))
+
+.PHONY: helm-docs
+helm-docs: helm-doc
+	$(HELM_DOCS) --chart-search-root ./charts
+
+.PHONY: helm-lint
+helm-lint: ct
+	@$(CT) lint --config .github/configs/ct.yaml --validate-yaml=false --all --debug
+
+helm-schema: helm-plugin-schema
+	cd charts/kubewaf && $(HELM) schema --use-helm-docs
+
+helm-test: helm-create helm-install helm-destroy
+
+helm-test-ct: ct helm-load-image
+	@$(CT) install --config $(SRC_ROOT)/.github/configs/ct.yaml --namespace=kubewaf-system --all --debug
+
+helm-install: install-dependencies helm-test-ct
+
+helm-create: kind
+	@$(KIND) create cluster --wait=60s --name kubewaf --image kindest/node:$(KUBERNETES_SUPPORTED_VERSION)
+	@$(KUBECTL) create ns kubewaf-system
+
+helm-load-image: kind helm-controller-version ko-build-all
+	@$(KIND) load docker-image --name kubewaf $(CONTROLLER_IMG):$(VERSION)
+
+helm-destroy: kind
+	@$(KIND) delete cluster --name kubewaf
+
+####################
+# -- Helm Plugins
+####################
+
+HELM_SCHEMA_VERSION   := ""
+helm-plugin-schema:
+	@$(HELM) plugin install https://github.com/losisin/helm-values-schema-json.git --version $(HELM_SCHEMA_VERSION) --verify=false || true
+
+HELM_DOCS         := $(LOCALBIN)/helm-docs
+HELM_DOCS_VERSION := v1.14.1
+HELM_DOCS_LOOKUP  := norwoodj/helm-docs
+helm-doc:
+	@test -s $(HELM_DOCS) || \
+	$(call go-install-tool,$(HELM_DOCS),github.com/$(HELM_DOCS_LOOKUP)/cmd/helm-docs@$(HELM_DOCS_VERSION))
+
+CONTROLLER_GEN         := $(LOCALBIN)/controller-gen
+CONTROLLER_GEN_VERSION ?= v0.20.0
+CONTROLLER_GEN_LOOKUP  := kubernetes-sigs/controller-tools
+controller-gen:
+	@test -s $(CONTROLLER_GEN) && $(CONTROLLER_GEN) --version | grep -q $(CONTROLLER_GEN_VERSION) || \
+	$(call go-install-tool,$(CONTROLLER_GEN),sigs.k8s.io/controller-tools/cmd/controller-gen@$(CONTROLLER_GEN_VERSION))
+
+
+CT         := $(LOCALBIN)/ct
+CT_VERSION := v3.14.0
+CT_LOOKUP  := helm/chart-testing
+ct:
+	@test -s $(CT) && $(CT) version | grep -q $(CT_VERSION) || \
+	$(call go-install-tool,$(CT),github.com/$(CT_LOOKUP)/v3/ct@$(CT_VERSION))
+
+KIND         := $(LOCALBIN)/kind
+KIND_VERSION := v0.31.0
+KIND_LOOKUP  := kubernetes-sigs/kind
+kind:
+	@test -s $(KIND) && $(KIND) --version | grep -q $(KIND_VERSION) || \
+	$(call go-install-tool,$(KIND),sigs.k8s.io/kind/cmd/kind@$(KIND_VERSION))
+
+KO           := $(LOCALBIN)/ko
+KO_VERSION   := v0.18.1
+KO_LOOKUP    := google/ko
+ko:
+	@test -s $(KO) && $(KO) -h | grep -q $(KO_VERSION) || \
+	$(call go-install-tool,$(KO),github.com/$(KO_LOOKUP)@$(KO_VERSION))
+
+NWA           := $(LOCALBIN)/nwa
+NWA_VERSION   := v0.7.7
+NWA_LOOKUP    := B1NARY-GR0UP/nwa
+nwa:
+	@test -s $(NWA) && $(NWA) -h | grep -q $(NWA_VERSION) || \
+	$(call go-install-tool,$(NWA),github.com/$(NWA_LOOKUP)@$(NWA_VERSION))
+
+GOLANGCI_LINT          := $(LOCALBIN)/golangci-lint
+GOLANGCI_LINT_VERSION  := v2.8.0
+GOLANGCI_LINT_LOOKUP   := golangci/golangci-lint
+golangci-lint: ## Download golangci-lint locally if necessary.
+	@test -s $(GOLANGCI_LINT) && $(GOLANGCI_LINT) -h | grep -q $(GOLANGCI_LINT_VERSION) || \
+	$(call go-install-tool,$(GOLANGCI_LINT),github.com/$(GOLANGCI_LINT_LOOKUP)/v2/cmd/golangci-lint@$(GOLANGCI_LINT_VERSION))
 
 # go-install-tool will 'go install' any package with custom target and name of binary, if it doesn't exist
 # $1 - target path with name of binary
 # $2 - package url which can be installed
 # $3 - specific version of package
+PROJECT_DIR := $(shell dirname $(abspath $(lastword $(MAKEFILE_LIST))))
 define go-install-tool
-@[ -f "$(1)-$(3)" ] && [ "$$(readlink -- "$(1)" 2>/dev/null)" = "$(1)-$(3)" ] || { \
-set -e; \
-package=$(2)@$(3) ;\
-echo "Downloading $${package}" ;\
-rm -f "$(1)" ;\
-GOBIN="$(LOCALBIN)" go install $${package} ;\
-mv "$(LOCALBIN)/$$(basename "$(1)")" "$(1)-$(3)" ;\
-} ;\
-ln -sf "$$(realpath "$(1)-$(3)")" "$(1)"
+[ -f $(1) ] || { \
+    set -e ;\
+    GOBIN=$(LOCALBIN) go install $(2) ;\
+}
 endef
 
 define gomodver
