@@ -10,7 +10,7 @@
             "type": "object",
             "properties": {
                 "extraArgs": {
-                    "description": "A list of extra arguments to add to the sops-operator",
+                    "description": "A list of extra arguments to add",
                     "type": "array"
                 },
                 "logLevel": {
@@ -253,51 +253,7 @@
                         },
                         "groups": {
                             "description": "Prometheus Groups for the rule",
-                            "type": "array",
-                            "items": {
-                                "type": "object",
-                                "properties": {
-                                    "name": {
-                                        "type": "string"
-                                    },
-                                    "rules": {
-                                        "type": "array",
-                                        "items": {
-                                            "type": "object",
-                                            "properties": {
-                                                "alert": {
-                                                    "type": "string"
-                                                },
-                                                "annotations": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "description": {
-                                                            "type": "string"
-                                                        },
-                                                        "summary": {
-                                                            "type": "string"
-                                                        }
-                                                    }
-                                                },
-                                                "expr": {
-                                                    "type": "string"
-                                                },
-                                                "for": {
-                                                    "type": "string"
-                                                },
-                                                "labels": {
-                                                    "type": "object",
-                                                    "properties": {
-                                                        "severity": {
-                                                            "type": "string"
-                                                        }
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
-                            }
+                            "type": "array"
                         },
                         "labels": {
                             "description": "Assign additional labels",
@@ -409,33 +365,8 @@
             }
         },
         "priorityClassName": {
-            "description": "Set the priority class name of the Capsule pod",
+            "description": "Set the priority class name",
             "type": "string"
-        },
-        "rbac": {
-            "type": "object",
-            "properties": {
-                "enabled": {
-                    "description": "Enable bootstraping of RBAC resources",
-                    "type": "boolean"
-                },
-                "secretsRole": {
-                    "type": "object",
-                    "properties": {
-                        "create": {
-                            "type": "boolean"
-                        },
-                        "labels": {
-                            "type": "object",
-                            "properties": {
-                                "rbac.authorization.k8s.io/aggregate-to-admin": {
-                                    "type": "string"
-                                }
-                            }
-                        }
-                    }
-                }
-            }
         },
         "readinessProbe": {
             "description": "Configure the readiness probe using Deployment probe spec",
@@ -521,38 +452,11 @@
         },
         "volumeMounts": {
             "description": "VolumeMounts",
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "mountPath": {
-                        "type": "string"
-                    },
-                    "name": {
-                        "type": "string"
-                    }
-                }
-            }
+            "type": "array"
         },
         "volumes": {
             "description": "Volumes",
-            "type": "array",
-            "items": {
-                "type": "object",
-                "properties": {
-                    "emptyDir": {
-                        "type": "object",
-                        "properties": {
-                            "sizeLimit": {
-                                "type": "string"
-                            }
-                        }
-                    },
-                    "name": {
-                        "type": "string"
-                    }
-                }
-            }
+            "type": "array"
         }
     }
 }

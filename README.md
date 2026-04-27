@@ -3,6 +3,7 @@
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Go](https://img.shields.io/badge/Go-1.25-blue)](https://go.dev/)
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-%23161616.svg?logo=kubernetes&logoColor=white)](https://kubernetes.io/)
+[![Artifact Hub](https://img.shields.io/endpoint?url=https://artifacthub.io/badge/repository/kubewaf)](https://artifacthub.io/packages/search?repo=kubewaf)
 
 **Kubernetes-native Web Application Firewall**
 

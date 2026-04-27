@@ -63,7 +63,7 @@ func main() {
 	var webhookCertPath, webhookCertName, webhookCertKey string
 	var enableLeaderElection bool
 	var probeAddr string
-	var secureMetrics bool
+	var secureMetrics, enablePprof bool
 	var enableHTTP2 bool
 	var tlsOpts []func(*tls.Config)
 	flag.StringVar(&metricsAddr, "metrics-bind-address", "0", "The address the metrics endpoint binds to. "+
@@ -83,6 +83,12 @@ func main() {
 	flag.StringVar(&metricsCertKey, "metrics-cert-key", "tls.key", "The name of the metrics server key file.")
 	flag.BoolVar(&enableHTTP2, "enable-http2", false,
 		"If set, HTTP/2 will be enabled for the metrics and webhook servers")
+	flag.BoolVar(
+		&enablePprof,
+		"enable-pprof",
+		false,
+		"Enables Pprof endpoint for profiling (not recommend in production)",
+	)
 	opts := zap.Options{
 		Development: true,
 	}
@@ -164,7 +170,7 @@ func main() {
 		metricsServerOptions.KeyName = metricsCertKey
 	}
 
-	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrl.Options{
+	ctrlOpts := ctrl.Options{
 		Scheme:                 scheme,
 		Metrics:                metricsServerOptions,
 		WebhookServer:          webhookServer,
@@ -182,7 +188,13 @@ func main() {
 		// if you are doing or is intended to do any operation such as perform cleanups
 		// after the manager stops then its usage might be unsafe.
 		// LeaderElectionReleaseOnCancel: true,
-	})
+	}
+
+	if enablePprof {
+		ctrlOpts.PprofBindAddress = ":8082"
+	}
+
+	mgr, err := ctrl.NewManager(ctrl.GetConfigOrDie(), ctrlOpts)
 	if err != nil {
 		setupLog.Error(err, "unable to start manager")
 		os.Exit(1)
